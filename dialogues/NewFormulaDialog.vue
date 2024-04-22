@@ -42,6 +42,7 @@ import {useDialogPluginComponent} from "quasar";
 import DialogButton from "components/buttons/DialogButton.vue";
 import {ref} from "vue";
 import {useCommandExecutor} from "src/services/CommandExecutor";
+import {AddEntityCommand} from "src/apps/commands/AddEntityCommand";
 
 defineEmits([
   ...useDialogPluginComponent.emits
