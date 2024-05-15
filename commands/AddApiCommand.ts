@@ -4,8 +4,6 @@ import {useApisStore} from "src/apps/stores/apisStore";
 
 export class AddApiCommand implements Command<string> {
 
-  public merge: boolean = true
-
   constructor(
     public name: string) {
   }
