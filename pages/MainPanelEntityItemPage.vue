@@ -48,6 +48,18 @@
             <q-input v-model="f.value" :label="f.label"/>
           </div>
         </template>
+        <template v-else-if="f.type === FieldType.DATE">
+          <div class="col-3 items-center">{{ f.label }}</div>
+          <div class="col-9">
+            <q-input type="date" v-model="f.value" :label="f.label"/>
+          </div>
+        </template>
+        <template v-else-if="f.type === FieldType.REFERENCE">
+          <div class="col-3 items-center">{{ f.label }}</div>
+          <div class="col-9">
+            <q-select v-model="f.value" :options="referencedItems.get(f.reference!)"/>
+          </div>
+        </template>
         <template v-else-if="f.type === FieldType.TEXTAREA">
           <div class="col-3 items-center">{{ f.label }}</div>
           <div class="col-9">
@@ -83,19 +95,19 @@
 import {onMounted, ref, watchEffect} from "vue";
 import Analytics from "src/utils/google-analytics";
 import {useRoute, useRouter} from "vue-router";
-import {useEntitiesStore} from "stores/entitiesStore";
-import {Entity, Field, FieldType} from "src/models/Entity";
 import _ from "lodash"
 import {uid} from "quasar";
-import {useUtils} from "src/services/Utils";
+import {useUtils} from "src/core/services/Utils";
 import {create, all} from 'mathjs'
-import {useCommandExecutor} from "src/services/CommandExecutor";
-import {ExecuteApiCommand} from "src/domain/apis/ExecuteApiCommand";
-import {useApisStore} from "stores/apisStore";
-import {Api, ApiResponse, Endpoint, ParamDefinition} from "src/models/Api";
+import {useCommandExecutor} from "src/core/services/CommandExecutor";
 // @ts-ignore
 import {JSONPath} from '../../../node_modules/jsonpath-plus/dist/index-browser-esm.js';
-import {ExecutionResult} from "src/domain/ExecutionResult";
+import {ExecutionResult} from "src/core/domain/ExecutionResult";
+import {ExecuteApiCommand} from "src/apps/commands/ExecuteApiCommand";
+import {Api, ApiResponse, Endpoint, ParamDefinition} from "src/apps/models/Api";
+import {Entity, Field, FieldType} from "src/apps/models/Entity";
+import {useEntitiesStore} from "src/apps/stores/entitiesStore";
+import {useApisStore} from "src/apps/stores/apisStore";
 
 const config = {}
 const math = create(all, config)
@@ -170,6 +182,15 @@ watchEffect(async () => {
 
   }
 })
+//
+// const referenceOptions = async (f: Field) => {
+//   const referencedEntities: Entity | undefined = await useEntitiesStore().findById(f.reference!)
+//   return referencedEntities ?
+//     _.map(referencedEntities.items, e => {
+//       return {label: e.name, value: e.id}
+//     }) :
+//     []
+// }
 
 const save = () => {
   if (entity.value) {

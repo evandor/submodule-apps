@@ -2,7 +2,7 @@ import {defineStore} from "pinia";
 import {computed, ref} from "vue";
 import PersistenceService from "src/services/PersistenceService";
 import {uid} from "quasar";
-import {useUtils} from "src/services/Utils";
+import {useUtils} from "src/core/services/Utils";
 import {Api} from "src/apps/models/Api";
 import AppsPersistence from "src/apps/persistence/AppsPersistence";
 
@@ -22,7 +22,7 @@ export const useApisStore = defineStore('apis', () => {
    * @param ps a storage
    */
   async function initialize(ps: AppsPersistence) {
-    console.debug(" ...initializing apis store", ps)
+    console.log(` ...initializing apisStore (${ps?.getServiceName()})`)
     storage = ps
     apis.value = await storage.getApis()
     updated.value = new Date().getTime()

@@ -4,7 +4,8 @@ export class HeaderDefinition {
   constructor(
     public id: string,
     public name: string,
-    public value: string
+    public value: string,
+    public defaultValue: string | undefined = undefined
   ) {
 
   }

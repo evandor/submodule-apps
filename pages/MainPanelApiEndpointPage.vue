@@ -1,4 +1,3 @@
-#
 <template>
 
   <q-toolbar>
@@ -174,20 +173,18 @@ import Analytics from "src/utils/google-analytics";
 import {useRoute} from "vue-router";
 import _ from "lodash"
 import {uid} from "quasar";
-import {useUtils} from "src/services/Utils";
-import {Api, ApiResponse, Endpoint, ParamDefinition} from "src/models/Api";
-import {useApisStore} from "stores/apisStore";
-import {axios} from "boot/axios";
+import {useUtils} from "src/core/services/Utils";
 import VueJsonPretty from "vue-json-pretty";
 // TODO check approach for vueform
 import 'vue-json-pretty/lib/styles.css';
 // @ts-ignore
 import {JSONPath} from '../../../node_modules/jsonpath-plus/dist/index-browser-esm.js';
-import {useCommandExecutor} from "src/services/CommandExecutor";
-import {ExecuteApiCommand} from "src/domain/apis/ExecuteApiCommand";
-import {AddEntityCommand} from "src/domain/entites/AddEntityCommand";
-import {useEntitiesStore} from "stores/entitiesStore";
-import {Field} from "src/models/Entity";
+import {useCommandExecutor} from "src/core/services/CommandExecutor";
+import {Api, ApiResponse, Endpoint, ParamDefinition} from "src/apps/models/Api";
+import {useApisStore} from "src/apps/stores/apisStore";
+import {useEntitiesStore} from "src/apps/stores/entitiesStore";
+import {Field} from "src/apps/models/Entity";
+import {ExecuteApiCommand} from "src/apps/commands/ExecuteApiCommand";
 
 const config = {}
 

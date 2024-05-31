@@ -11,11 +11,11 @@ class IndexedDbAppsStorage implements AppsPersistence {
   private db: IDBPDatabase = null as unknown as IDBPDatabase
 
   getServiceName(): string {
-    return "IndexedDbSpacesStorage";
+    return this.constructor.name
   }
 
   async init() {
-    console.log(" ...initializing spaces (IndexedDbSpacesStorage)" )
+    console.log(" ...initializing apps (IndexedDbAppsStorage)" )
     this.db = await this.initDatabase()
     return Promise.resolve()
   }
@@ -23,12 +23,16 @@ class IndexedDbAppsStorage implements AppsPersistence {
   private async initDatabase(): Promise<IDBPDatabase> {
     console.debug(" about to initialize indexedDB")
     const ctx = this
-    return await openDB("spacesDB", 1, {
+    return await openDB("appsDB", 1, {
       // upgrading see https://stackoverflow.com/questions/50193906/create-index-on-already-existing-objectstore
       upgrade(db) {
-        if (!db.objectStoreNames.contains(ctx.STORE_IDENT)) {
-          console.log("creating db " + ctx.STORE_IDENT)
-          db.createObjectStore(ctx.STORE_IDENT);
+        if (!db.objectStoreNames.contains('entities')) {
+          console.log("creating db entities")
+          db.createObjectStore('entities');
+        }
+        if (!db.objectStoreNames.contains('apis')) {
+          console.log("creating db apis")
+          db.createObjectStore('apis');
         }
       }
     });
@@ -41,33 +45,35 @@ class IndexedDbAppsStorage implements AppsPersistence {
   }
 
   deleteApi(apiId: string): Promise<void> {
-    return Promise.resolve(undefined);
+    return this.db.delete('apis', apiId)
   }
 
   deleteEntity(entityId: string): Promise<void> {
-    return Promise.resolve(undefined);
+    return this.db.delete('entities', entityId)
   }
 
-  findApiById(id: string): Promise<Api> {
-    return Promise.reject(undefined);
+  async findApiById(id: string): Promise<Api> {
+    return await this.db.get('apis', id)
   }
 
-  findEntityById(id: string): Promise<Entity> {
-    return Promise.reject(undefined);
+  async findEntityById(id: string): Promise<Entity> {
+    return await this.db.get('entities', id)
   }
 
-  getApis(): Promise<Api[]> {
-    return Promise.resolve([]);
+  async getApis(): Promise<Api[]> {
+    return await this.db.getAll('apis')
   }
 
-  getEntities(): Promise<Entity[]> {
-    return Promise.resolve([]);
+  async getEntities(): Promise<Entity[]> {
+    return await this.db.getAll('entities')
   }
 
   saveApi(api: Api): void {
+    this.db.put('apis', api, api.id)
   }
 
   saveEntity(entity: Entity): void {
+    this.db.put('entities', entity, entity.id)
   }
 
 

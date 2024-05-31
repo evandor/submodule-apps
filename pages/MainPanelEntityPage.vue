@@ -138,9 +138,9 @@
           </div>
 
           <template v-if="typeModel === FieldType.REFERENCE">
-            <div class="col-2 q-pa-md">Reference</div>
+            <div class="col-2 q-pa-md">Referenced Entity</div>
             <div class="col-5 q-my-sm">
-              <q-input v-model="name" label="Name"/>
+              <q-select v-model="reference" :options="entitiesAsReference" emit-value map-options label="Reference"/>
             </div>
             <div class="col-5 q-pa-md text-grey">
               Provide a name for this field
@@ -208,12 +208,12 @@
 import {onMounted, ref, watch, watchEffect} from "vue";
 import Analytics from "src/utils/google-analytics";
 import {useRoute} from "vue-router";
-import {useEntitiesStore} from "stores/entitiesStore";
-import {Entity, Field, FieldType} from "src/models/Entity";
 import _ from "lodash"
 import {uid} from "quasar";
-import {useUtils} from "src/services/Utils";
-import {useApisStore} from "stores/apisStore";
+import {useUtils} from "src/core/services/Utils";
+import {Entity, Field, FieldType} from "src/apps/models/Entity";
+import {useEntitiesStore} from "src/apps/stores/entitiesStore";
+import {useApisStore} from "src/apps/stores/apisStore";
 
 const {sendMsg} = useUtils()
 const route = useRoute()
@@ -230,6 +230,7 @@ const label = ref('')
 const info = ref('')
 const jsonPath = ref<string | undefined>('$')
 const source = ref<string>('manual')
+const reference = ref<any>()
 
 const sourceOptions = ref<object[]>([])
 
@@ -291,8 +292,11 @@ watchEffect(() => {
 
 const addField = () => {
   console.log("adding field", entity.value)
+  console.log("adding ref",reference.value)
   if (entity.value) {
-    entity.value.fields.push(new Field(uid(), name.value, typeModel.value, label.value, info.value))
+    const newField = new Field(uid(), name.value, typeModel.value, label.value, "", info.value, reference.value)
+    console.log("adding", newField)
+    entity.value.fields.push(newField)
     sendMsg('entity-changed', entity.value)
   }
 }

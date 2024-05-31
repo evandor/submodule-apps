@@ -1,7 +1,7 @@
 import {defineStore} from "pinia";
 import {computed, ref} from "vue";
 import {uid} from "quasar";
-import {useUtils} from "src/services/Utils";
+import {useUtils} from "src/core/services/Utils";
 import AppsPersistence from "src/apps/persistence/AppsPersistence";
 import {Entity} from "src/apps/models/Entity";
 
@@ -23,8 +23,9 @@ export const useEntitiesStore = defineStore('entities', () => {
    * @param ps a storage
    */
   async function initialize(ps: AppsPersistence) {
-    console.debug(" ...initializing entities store")
+    console.log(` ...initializing entitiesStore (${ps?.getServiceName()})`)
     storage = ps
+    await storage.init()
     entities.value = await storage.getEntities()
     updated.value = new Date().getTime()
   }
@@ -34,6 +35,7 @@ export const useEntitiesStore = defineStore('entities', () => {
     storage.saveEntity(newEntity)
     entities.value = await storage.getEntities()
     updated.value = new Date().getTime()
+    console.log("new entity", newEntity)
     return Promise.resolve(newEntity)
   }
 

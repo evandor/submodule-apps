@@ -51,6 +51,39 @@
 
       </div>
 
+      <div class="col-3 q-my-md">
+        Common Parameters<br>
+        <q-btn icon="o_add" size="xs" @click="showAddLineParameters = true"/>
+      </div>
+
+      <div class="col-9 q-my-md">
+
+        <div class="row" v-for="h in params">
+          <div class="col-4">
+            <q-input v-model="h.name" label="Key"/>
+          </div>
+          <div class="col-4">
+            <q-input v-model="h.value" label="Value"/>
+          </div>
+          <div class="col-4">
+            <q-btn label="delete"/>
+          </div>
+        </div>
+
+        <div class="row" v-if="showAddLineParameters">
+          <div class="col-4">
+            <q-select v-model="typeModel" :options="typeModelOptions" label="Type"/>
+          </div>
+          <div class="col-4">
+            <q-input v-model="paramKey" label="Key"/>
+          </div>
+          <div class="col-4">
+            <q-btn label="add" @click="addParam()"/>
+          </div>
+        </div>
+
+      </div>
+
       <div class="col-3"></div>
       <div class="col-9">
         <q-btn label="submit" @click="updateApi()"/>
@@ -68,12 +101,11 @@
 import {onMounted, ref, watch, watchEffect} from "vue";
 import Analytics from "src/utils/google-analytics";
 import {useRoute} from "vue-router";
-import {useApisStore} from "stores/apisStore";
 import _ from "lodash"
 import {uid} from "quasar";
-import {useUtils} from "src/services/Utils";
-import {Api, ApiSetup, HeaderDefinition, ParamDefinition} from "src/models/Api";
-import {axios} from "boot/axios";
+import {useUtils} from "src/core/services/Utils";
+import {Api, ApiSetup, HeaderDefinition, ParamDefinition} from "src/apps/models/Api";
+import {useApisStore} from "src/apps/stores/apisStore";
 
 const {sendMsg} = useUtils()
 const route = useRoute()
@@ -82,12 +114,13 @@ const form = ref(null)
 const call = ref(false)
 const apiId = ref<string | undefined>(undefined)
 const api = ref<Api | undefined>(undefined)
-const labelField = ref<string | undefined>(undefined)
+// const labelField = ref<string | undefined>(undefined)
 const result = ref(null)
-const headers = ref<object[]>([])
-const params = ref<object[]>([])
+const headers = ref<HeaderDefinition[]>([])
+const params = ref<ParamDefinition[]>([])
 const baseUrl = ref('https://...')
 const showAddLine = ref(false)
+const showAddLineParameters = ref(false)
 const typeModel = ref('Text')
 const typeModelOptions = ref([
   {value: 'text', label: 'Text'},
@@ -104,13 +137,13 @@ onMounted(() => {
   Analytics.firePageViewEvent('MainPanelApiPage', document.location.href);
 })
 
-watch(() => labelField.value, async (currentValue, oldValue) => {
-  console.log("changed labelField", currentValue, oldValue)
-  if (api.value) {
-    api.value.labelField = currentValue
-    await useApisStore().save(api.value)
-  }
-})
+// watch(() => labelField.value, async (currentValue, oldValue) => {
+//   console.log("changed labelField", currentValue, oldValue)
+//   if (api.value) {
+//     api.value.labelField = currentValue
+//     await useApisStore().save(api.value)
+//   }
+// })
 
 watchEffect(async () => {
   apiId.value = route.params.apiId.toString() || ''
@@ -118,19 +151,13 @@ watchEffect(async () => {
   if (apiId.value && useApisStore().updated) {
     api.value = await useApisStore().findById(apiId.value)
     baseUrl.value = api.value?.setup?.url || 'https://'
-    labelField.value = api.value?.labelField
+    // labelField.value = api.value?.labelField
     console.log("hier", form?.value, api.value)
     if (form && form.value && api.value) {
 
     }
     if (api.value?.setup?.headers) {
-      headers.value = _.map(api.value.setup.headers, (h: object) => {
-        return {
-          id: h.id,
-          name: h.name,
-          default: h.default
-        }
-      })
+      headers.value = api.value.setup.headers
     }
   }
 })
@@ -149,12 +176,12 @@ const updateApi = async () => {
 
     const headerDefinitions: HeaderDefinition[] = []
     for (const h of headers.value) {
-      headerDefinitions.push(new HeaderDefinition(uid(), h.name, h.default))
+      headerDefinitions.push(new HeaderDefinition(uid(), h.name, h.value))
     }
 
     const paramDefinitions: ParamDefinition[] = []
     for (const h of params.value) {
-      paramDefinitions.push(new ParamDefinition(uid(), h.name, h.default))
+      paramDefinitions.push(new ParamDefinition(uid(), h.name, h.value))
     }
 
     api.value.setup = new ApiSetup(uid(), baseUrl.value, headerDefinitions, paramDefinitions)
@@ -175,23 +202,24 @@ const updateApi = async () => {
 }
 
 const addHeader = () => {
-  headers.value.push({
-    id: uid(),
-    name: paramKey.value,
-    default: '',
-  })
+  headers.value.push(new HeaderDefinition(uid(),paramKey.value, ""))
   showAddLine.value = false
 }
 const addParam = () => {
-  if (form.value) {
-    params.value.push({
-      id: uid(),
-      name: form.value.data.newParamsKey,
-      default: '',
-    })
-  }
-  //
+  params.value.push(new ParamDefinition(uid(),paramKey.value, ""))
+  showAddLineParameters.value = false
 }
+
+// const addParam = () => {
+//   if (form.value) {
+//     params.value.push({
+//       id: uid(),
+//       name: form.value.data.newParamsKey,
+//       default: '',
+//     })
+//   }
+//   //
+// }
 
 const deleteHeader = (headerId: string) => {
   _.remove(headers.value, {id: headerId})
