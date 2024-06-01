@@ -32,6 +32,8 @@
       </div>
     </template>
 
+    {{ item }}
+
     <fieldset style="border:1px dotted grey; border-radius:5px">
       <legend>{{ entity?.name }}: Add</legend>
       <div class="row q-my-md" v-for="f in fields">
@@ -39,13 +41,13 @@
         <template v-if="f.type === FieldType.TEXT">
           <div class="col-3 items-center">{{ f.label }}</div>
           <div class="col-9">
-            <q-input v-model="f.value" :label="f.label"/>
+            <q-input v-model="item[f.name as keyof object]" :label="f.label"/>
           </div>
         </template>
         <template v-else-if="f.type === FieldType.NUMBER">
           <div class="col-3 items-center">{{ f.label }}</div>
           <div class="col-9">
-            <q-input v-model="f.value" :label="f.label"/>
+            <q-input v-model="item[f.name as keyof object]" :label="f.label"/>
           </div>
         </template>
         <template v-else-if="f.type === FieldType.DATE">
@@ -57,7 +59,7 @@
         <template v-else-if="f.type === FieldType.REFERENCE">
           <div class="col-3 items-center">{{ f.label }}</div>
           <div class="col-9">
-            <q-select v-model="f.value" :options="referencedItems.get(f.reference!)"/>
+            <q-select v-model="f.value" :options="referencedItems.get(f.reference!)" emit-value map-options />
           </div>
         </template>
         <template v-else-if="f.type === FieldType.TEXTAREA">
@@ -121,6 +123,7 @@ const api = ref<Api | undefined>(undefined)
 const endpoint = ref<Endpoint | undefined>(undefined)
 const entityId = ref<string | undefined>(undefined)
 const itemId = ref<string | undefined>(undefined)
+const item = ref<object | undefined>(undefined)
 const entity = ref<Entity | undefined>(undefined)
 const referencedItems = ref<Map<string, object>>(new Map())
 const fields = ref<Field[]>([])
@@ -167,7 +170,7 @@ watchEffect(async () => {
     }
 
     if (entity.value) {
-      const item: object | undefined = itemId.value ? _.find(entity.value!.items, (i: object) => i['id' as keyof object] === itemId.value) : undefined
+      item.value = itemId.value ? _.find(entity.value!.items, (i: object) => i['id' as keyof object] === itemId.value) : undefined
       console.log("hier", item)
       console.log("entity", entity.value)
 

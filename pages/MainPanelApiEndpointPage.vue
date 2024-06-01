@@ -50,13 +50,16 @@
         <div class="col-9 q-my-md">
 
           <div class="row" v-for="p in params">
-            <div class="col-4">
+            <div class="col-3">
               <q-select v-model="typeModel" :options="typeModelOptions" label="Type"/>
             </div>
-            <div class="col-4">
+            <div class="col-3">
               <q-input v-model="p.name" label="Key"/>
             </div>
-            <div class="col-4">
+            <div class="col-3">
+              <q-input v-model="p.default" label="Default"/>
+            </div>
+            <div class="col-3">
               <q-btn label="delete"/>
             </div>
           </div>
@@ -134,30 +137,38 @@
     </div>
 
     <div v-if="tab === 'results'">
-      {{ endpoint?.results }}
 
-        <div>
-          <label><b>JSONPath:</b>
-            <q-input v-model="jsonPath"/>
-          </label>
-        </div>
+      <div>
+        <label><b>JSONPath:</b>
+          <q-input v-model="jsonPath"/>
+        </label>
+      </div>
 
-        <div id="resultContainer" class="container">
-          <label><b>Results:</b>
-            {{ jsonPathApplied }}
-          </label>
-        </div>
+      <div id="resultContainer" class="container">
+        <label><b>Results:</b>
+         ...
+        </label>
+      </div>
 
-        <vue-json-pretty v-if="jsonPathApplied" style="font-size: 80%" :show-length="true"
-                         v-model:data="jsonPathState.data"
-                         :show-double-quotes="true"/>
+      <vue-json-pretty v-if="jsonPathApplied" style="font-size: 80%" :show-length="true"
+                       v-model:data="jsonPathState.data"
+                       :show-double-quotes="true"/>
 
       <div class="row">
         <div class="col-8">
-          <q-input v-model="newEntityName" />
+          <q-input v-model="newEntityName"/>
         </div>
         <div class="col-4">
           <q-btn label="save as entity" @click="saveAsEntity()"/>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-8">
+          <q-select v-model="reference" :options="entitiesAsReference" emit-value map-options label="Reference"/>
+        </div>
+        <div class="col-4">
+          <q-btn label="save as list of entities" @click="saveAsList()"/>
         </div>
       </div>
 
@@ -183,7 +194,7 @@ import {useCommandExecutor} from "src/core/services/CommandExecutor";
 import {Api, ApiResponse, Endpoint, ParamDefinition} from "src/apps/models/Api";
 import {useApisStore} from "src/apps/stores/apisStore";
 import {useEntitiesStore} from "src/apps/stores/entitiesStore";
-import {Field} from "src/apps/models/Entity";
+import {Entity, Field, FieldType} from "src/apps/models/Entity";
 import {ExecuteApiCommand} from "src/apps/commands/ExecuteApiCommand";
 
 const config = {}
@@ -209,6 +220,8 @@ const typeModel = ref('Text')
 const typeModelOptions = ['Text']
 const jsonPath = ref('$')
 const jsonPathApplied = ref('')
+const entitiesAsReference = ref<object[]>([])
+const reference = ref<any>()
 
 const state = reactive({val: JSON.stringify(result), data: result})
 const jsonPathState = reactive({val: JSON.stringify(jsonPathApplied), data: jsonPathApplied})
@@ -216,6 +229,15 @@ const jsonPathState = reactive({val: JSON.stringify(jsonPathApplied), data: json
 
 onMounted(() => {
   Analytics.firePageViewEvent('MainPanelApiEndpointsPage', document.location.href);
+})
+
+watchEffect(() => {
+  entitiesAsReference.value = _.map(useEntitiesStore().entities, (e: Entity) => {
+    return {
+      value: e.id,
+      label: e.name
+    }
+  })
 })
 
 watchEffect(() => {
@@ -317,25 +339,52 @@ const createOrUpdateEndpoint = async () => {
   }
 }
 
+const saveAsList = async () => {
+  console.log("ref", reference.value)
+  const entity = await useEntitiesStore().findById(reference.value)
+  console.log("entity", entity)
+  if (entity) {
+    for (const [key, value] of Object.entries(jsonPathApplied.value[0])) {
+      // console.log("checking", key, value, typeof value)
+      const item: { [k: string]: any } = {}
+      item['id'] = key
+      item['created'] = new Date().getTime()
+      item['updated'] = new Date().getTime()
+      Object.keys(value).forEach(key => {
+        item[key] = value[key as keyof object]
+      })
+      entity?.items.push(item)
+    }
+    await useEntitiesStore().save(entity)
+  }
+}
+
 const saveAsEntity = async () => {
   //useCommandExecutor().executeFromUi(new AddEntityCommand(newEntityName.value))
   const newEntity = await useEntitiesStore().createEntity(newEntityName.value)
+  const item: { [k: string]: any } = {}
+  item['id'] = uid()
+  item['created'] = new Date().getTime()
+  item['updated'] = new Date().getTime()
   for (const [key, value] of Object.entries(jsonPathApplied.value[0])) {
-    console.log("checking", key, value, typeof value)
-    let type = 'text'
-    switch(typeof value) {
+    // console.log("checking", key, value, typeof value)
+    let type = FieldType.TEXT
+    switch (typeof value) {
       case 'number':
-        type = 'number'
+        type = FieldType.NUMBER
         break
       default:
-        type  = 'text'
+        type = FieldType.TEXT
     }
     const f = new Field(uid(), key, type, key)
     newEntity.fields.push(f)
     newEntity.description = "created from api"
     newEntity.source = "api|" + api.value?.id + "|" + endpoint.value?.id
     newEntity.jsonPath = jsonPath.value
+    item[key] = value
   }
+  newEntity.items.push(item)
+  await useEntitiesStore().save(newEntity)
   sendMsg('entity-changed', newEntity)
 }
 

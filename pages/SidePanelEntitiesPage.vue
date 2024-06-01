@@ -9,9 +9,10 @@
             {{ e.name }}
             [<span @click="openEntityInMainPanel(e.id + '/items')">Add</span>]
             [<span @click="openEntityInMainPanel(e.id)">Manage</span>]
+            [<span @click="openEntityTableInMainPanel(e.id)">Table</span>]
           </div>
           <div class="col-12">
-            <ul>
+            <ul v-if="e.items.length < 10">
               <li v-for="i in e.items"
                   @click="openItemInMainPanel(e.id,i.id)">{{ getLineFor(i, e) }}
               </li>
@@ -111,6 +112,9 @@ chrome.runtime.onMessage.addListener((m: any, s: any, response: any) => {
 const openEntityInMainPanel = (path: string) =>
   NavigationService.openOrCreateTab([chrome.runtime.getURL("/www/index.html#/mainpanel/entities/" + path)], undefined, [], true, true)
 
+const openEntityTableInMainPanel = (path: string) =>
+  NavigationService.openOrCreateTab([chrome.runtime.getURL("/www/index.html#/mainpanel/entities/" + path + "/views/table")], undefined, [], true, true)
+
 const openItemInMainPanel = (entityId: string, itemId: string) =>
   NavigationService.openOrCreateTab([chrome.runtime.getURL("/www/index.html#/mainpanel/entities/" + entityId + "/items/" + itemId)], undefined, [], true, true)
 
@@ -122,7 +126,7 @@ const openNewEntityDialog = () => {
 }
 
 const getLineFor = (item: object, e: Entity) => {
-  console.log("item, e", item, e)
+  //console.log("item, e", item, e)
   if (e.labelField) {
     // const field = _.find(e.fields, f => f.name === e.labelField)
     // if (field) {
