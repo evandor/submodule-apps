@@ -15,7 +15,8 @@ export class ParamDefinition {
   constructor(
     public id: string,
     public name: string,
-    public value: string
+    public value: string,
+    public defaultValue: string | undefined = undefined
   ) {
 
   }

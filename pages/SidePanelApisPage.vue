@@ -5,10 +5,17 @@
     <div class="q-ma-none">
       <div class="q-ma-none">
         <div class="row q-ma-none q-pa-none cursor-pointer" v-for="e in apis">
-          <div class="col-12 q-ma-none q-pa-none q-pt-lg">
-            {{ e.name }}
-            [<span @click="openEndpointInMainPanel(e.id ,'')">Add Endpoint</span>]
-            [<span @click="openApiInMainPanel(e.id)">Manage</span>]
+          <div class="col-6 q-ma-none q-pa-none q-pt-lg">
+            <b>{{ e.name }}</b>
+          </div>
+          <div class="col-6 q-ma-none q-pa-none q-pt-lg text-right">
+<!--          [<span @click="openEndpointInMainPanel(e.id ,'')">Add Endpoint</span>]-->
+            <q-icon name="hub" color="primary" @click="openEndpointInMainPanel(e.id,'')">
+              <q-tooltip>Add Endpoint</q-tooltip>
+            </q-icon>
+            <q-icon name="o_settings" class="q-ml-md" color="primary" @click="openApiInMainPanel(e.id)">
+              <q-tooltip>Manage</q-tooltip>
+            </q-icon>
           </div>
           <div class="col-12">
             <ul>

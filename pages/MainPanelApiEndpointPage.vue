@@ -34,15 +34,23 @@
       <q-btn v-if="endpointId" class="q-ml-md" size="xs" label="Delete" @click="deleteEndpoint()"/>
 
       <div class="row">
+
         <div class="col-3 q-my-md">Base URL from API Definition</div>
         <div class="col-9 q-my-md">
           {{ api?.setup?.url }}
         </div>
+
         <div class="col-3 q-my-md">Endpoint</div>
         <div class="col-9 q-my-md">
           <q-input v-model="endpointUrl" label="Endpoint Path"
                    :hint="'Endpoint URL set to \'' + api?.setup?.url + endpointUrl + '\''"/>
         </div>
+
+        <div class="col-3 q-my-md">Method</div>
+        <div class="col-9 q-my-md">
+          <q-select v-model="method" label="Method" :options="['GET','POST']" />
+        </div>
+
         <div class="col-3 q-my-md">
           Parameter<br>
           <q-btn icon="o_add" size="xs" @click="showAddLine = true"/>
@@ -57,7 +65,7 @@
               <q-input v-model="p.name" label="Key"/>
             </div>
             <div class="col-3">
-              <q-input v-model="p.default" label="Default"/>
+              <q-input v-model="p.defaultValue" label="Default"/>
             </div>
             <div class="col-3">
               <q-btn label="delete"/>
@@ -78,8 +86,11 @@
 
         </div>
         <div class="col-3"></div>
-        <div class="col-9">
+        <div class="col-9" v-if="!endpointId">
           <q-btn label="submit" @click="createOrUpdateEndpoint()"/>
+        </div>
+        <div class="col-9" v-else>
+          <q-btn label="update" @click="createOrUpdateEndpoint()"/>
         </div>
       </div>
 
@@ -222,6 +233,7 @@ const jsonPath = ref('$')
 const jsonPathApplied = ref('')
 const entitiesAsReference = ref<object[]>([])
 const reference = ref<any>()
+const method = ref('GET')
 
 const state = reactive({val: JSON.stringify(result), data: result})
 const jsonPathState = reactive({val: JSON.stringify(jsonPathApplied), data: jsonPathApplied})
@@ -331,7 +343,7 @@ const createOrUpdateEndpoint = async () => {
     if (!api.value.endpoints) {
       api.value.endpoints = []
     }
-    const newEndpoint = new Endpoint(uid(), endpointUrl.value, [], params.value)
+    const newEndpoint = new Endpoint(endpointId.value ? endpointId.value : uid(), endpointUrl.value, [], params.value)
     api.value.endpoints.push(newEndpoint)
     sendMsg('api-changed', api.value)
     //await useEntitiesStore().save(entity.value)

@@ -1,7 +1,9 @@
 <template>
-    <q-dialog ref="dialogRef" @hide="onDialogHide">
+  <q-dialog ref="dialogRef" @hide="onDialogHide">
 
-      <q-card class="q-dialog-plugin" style="max-width:100%">
+    <q-form @submit.prevent="submit()" ref="theForm">
+
+      <q-card class="q-dialog-plugin" style="max-width:260px;">
         <q-card-section>
           <div class="text-h6">Add API</div>
         </q-card-section>
@@ -21,19 +23,19 @@
         </q-card-section>
 
 
-
         <q-card-actions align="right">
           <DialogButton label="Cancel" color="primary" v-close-popup/>
           <DialogButton label="Add"
                         type="submit"
-                        @click="createNewApi()"
                         v-close-popup/>
         </q-card-actions>
 
       </q-card>
 
+    </q-form>
 
-    </q-dialog>
+
+  </q-dialog>
 </template>
 
 <script lang="ts" setup>
@@ -56,7 +58,7 @@ const {dialogRef, onDialogHide} = useDialogPluginComponent()
 
 const newApiName = ref(props.name)
 
-const createNewApi = () => {
+const submit = () => {
   console.log("new api", newApiName.value)
   useCommandExecutor().executeFromUi(new AddApiCommand(newApiName.value))
 }
