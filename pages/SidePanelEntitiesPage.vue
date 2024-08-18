@@ -47,7 +47,7 @@
           <SidePanelToolbarButton
             icon="close"
             tooltip="Close this view"
-            @click="useUiStore().sidePanelSetActiveView(SidePanelView.MAIN)"
+            @click="useUiStore().sidePanelSetActiveView(SidePanelViews.MAIN)"
             color="black"/>
         </template>
 
@@ -61,17 +61,17 @@
 <script lang="ts" setup>
 
 import FirstToolbarHelper from "pages/sidepanel/helper/FirstToolbarHelper.vue";
-import {SidePanelView, useUiStore} from "stores/uiStore";
+import {useUiStore} from "src/ui/stores/uiStore";
 import {onMounted, ref, watch, watchEffect} from "vue";
 import Analytics from "src/utils/google-analytics";
 import SidePanelToolbarButton from "components/buttons/SidePanelToolbarButton.vue";
 import {openURL, useQuasar} from "quasar";
 import NavigationService from "src/services/NavigationService";
-import _ from "lodash"
 import {Entity} from "src/apps/models/Entity";
 import {useEntitiesStore} from "src/apps/stores/entitiesStore";
 import NewEntityDialog from "src/apps/dialogues/NewEntityDialog.vue";
 import NewFormulaDialog from "src/apps/dialogues/NewFormulaDialog.vue";
+import {SidePanelViews} from "src/models/SidePanelViews";
 
 onMounted(() => {
   Analytics.firePageViewEvent('SidePanelEntityManager', document.location.href);

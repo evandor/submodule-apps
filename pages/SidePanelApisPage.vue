@@ -45,7 +45,7 @@
           <SidePanelToolbarButton
             icon="close"
             tooltip="Close this view"
-            @click="useUiStore().sidePanelSetActiveView(SidePanelView.MAIN)"
+            @click="useUiStore().sidePanelSetActiveView(SidePanelViews.MAIN)"
             color="black"/>
         </template>
 
@@ -59,17 +59,17 @@
 <script lang="ts" setup>
 
 import FirstToolbarHelper from "pages/sidepanel/helper/FirstToolbarHelper.vue";
-import {SidePanelView, useUiStore} from "stores/uiStore";
+import {useUiStore} from "src/ui/stores/uiStore";
 import {onMounted, ref, watch, watchEffect} from "vue";
 import Analytics from "src/utils/google-analytics";
 import SidePanelToolbarButton from "components/buttons/SidePanelToolbarButton.vue";
 import {openURL, useQuasar} from "quasar";
 import NavigationService from "src/services/NavigationService";
-import _ from "lodash"
 import {Api} from "src/apps/models/Api";
 import {useApisStore} from "src/apps/stores/apisStore";
 import NewApiDialog from "src/apps/dialogues/NewApiDialog.vue";
 import {Entity} from "src/apps/models/Entity";
+import {SidePanelViews} from "src/models/SidePanelViews";
 
 onMounted(() => {
   Analytics.firePageViewEvent('SidePanelApisManager', document.location.href);
