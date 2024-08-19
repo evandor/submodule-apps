@@ -4,9 +4,9 @@
     <div class="row fit">
       <q-toolbar-title>
         <div class="row justify-start items-baseline">
-          <div class="col-10">Entity Management</div>
+          <div class="col-10">MasterData Management</div>
           <div class="col-2 text-right">
-            <q-btn label="delete entity" @click="deleteEntity()"/>
+            <q-btn label="delete masterData" @click="deleteMasterData()"/>
           </div>
         </div>
       </q-toolbar-title>
@@ -16,7 +16,7 @@
   <div class="q-ma-md">
 
     <fieldset style="border:1px dotted grey; border-radius:5px;background-color:#efefef">
-      <legend style="background-color:#efefef">{{ entity?.name }}: Definition</legend>
+      <legend style="background-color:#efefef">{{ masterData?.name }}: Definition</legend>
       <div class="row items-center">
 
         <div class="col-2 q-pa-md">
@@ -26,7 +26,7 @@
           <q-input v-model="description" label="Description"/>
         </div>
         <div class="col-5 q-pa-md text-grey">
-          Provide a description for this entity
+          Provide a description for this masterData
         </div>
 
         <div class="col-2 q-pa-md">
@@ -36,7 +36,7 @@
           <q-select v-model="source" :options="sourceOptions"/>
         </div>
         <div class="col-5 q-pa-md text-grey">
-          The source for this entity could be an API
+          The source for this masterData could be an API
         </div>
 
         <div class="col-2 q-pa-md">
@@ -46,7 +46,7 @@
           <q-input v-model="jsonPath" label="jsonPath"/>
         </div>
         <div class="col-5 q-pa-md text-grey">
-          Select part of the result to be assigned to an entity
+          Select part of the result to be assigned to an masterData
         </div>
 
         <div class="col-2 q-pa-md">
@@ -80,10 +80,10 @@
     <br><br>
 
     <fieldset style="border:1px dotted grey; border-radius:5px">
-      <legend>{{ entity?.name }}: Defined Fields</legend>
+      <legend>{{ masterData?.name }}: Defined Fields</legend>
 
       <q-list class="q-my-md" bordered separator>
-        <q-item clickable v-ripple v-for="(f,idx) in entity?.fields" :key="idx">
+        <q-item clickable v-ripple v-for="(f,idx) in masterData?.fields" :key="idx">
           <q-item-section>
             <q-item-label>{{ f.label }}</q-item-label>
             <q-item-label caption>{{ f.id }}</q-item-label>
@@ -115,7 +115,7 @@
     <form @submit.prevent.stop="addField">
       <fieldset style="border:1px dotted grey; border-radius:5px">
 
-        <legend>{{ entity?.name }}: Add Field</legend>
+        <legend>{{ masterData?.name }}: Add Field</legend>
 
         <div class="row q-my-md">
 
@@ -129,7 +129,6 @@
                           {value: FieldType.URL,label: 'URL'},
                           {value: FieldType.DATE,label: 'Date'},
                           {value: FieldType.REFERENCE,label: 'Reference'},
-                          {value: FieldType.MASTERDATA,label: 'Master Data'},
                           {value: FieldType.FORMULA,label: 'Formula'},
                           {value: FieldType.SUBSTITUTION,label: 'Text Substitution'}
                         ]" emit-value map-options label="Type"/>
@@ -139,19 +138,9 @@
           </div>
 
           <template v-if="typeModel === FieldType.REFERENCE">
-            <div class="col-2 q-pa-md">Referenced Entity</div>
+            <div class="col-2 q-pa-md">Referenced MasterData</div>
             <div class="col-5 q-my-sm">
               <q-select v-model="reference" :options="entitiesAsReference" emit-value map-options label="Reference"/>
-            </div>
-            <div class="col-5 q-pa-md text-grey">
-              Provide a name for this field
-            </div>
-          </template>
-
-          <template v-if="typeModel === FieldType.MASTERDATA">
-            <div class="col-2 q-pa-md">Referenced Master Data</div>
-            <div class="col-5 q-my-sm">
-              <q-select v-model="masterdataRef" :options="masterdataAsReference" emit-value map-options label="Reference"/>
             </div>
             <div class="col-5 q-pa-md text-grey">
               Provide a name for this field
@@ -201,7 +190,7 @@
     <!--                       :items="[-->
     <!--                          {value: 'substitute',label: 'Text Substitution'}-->
     <!--                        ]"/>-->
-    <!--        <SelectElement name="reference" :native="false" label="Referenced Entity"-->
+    <!--        <SelectElement name="reference" :native="false" label="Referenced MasterData"-->
     <!--                       :conditions="[['type','in',['reference']]]"-->
     <!--                       :items="entitiesAsReference"/>-->
     <!--        <TextElement name="formula" label="Formula" placeholder="e.g. {a} * {b}"-->
@@ -222,19 +211,18 @@ import {useRoute} from "vue-router";
 import _ from "lodash"
 import {uid} from "quasar";
 import {useUtils} from "src/core/services/Utils";
-import {Entity, Field, FieldType} from "src/apps/models/Entity";
-import {useEntitiesStore} from "src/apps/stores/entitiesStore";
+import {MasterData} from "src/apps/models/MasterData";
 import {useApisStore} from "src/apps/stores/apisStore";
+import {Field, FieldType} from "src/apps/models/Entity";
 import {useMasterDataStore} from "src/apps/stores/masterDataStore";
 
 const {sendMsg} = useUtils()
 const route = useRoute()
 
 const apps = ref<string[]>([])
-const entityId = ref<string | undefined>(undefined)
-const entity = ref<Entity | undefined>(undefined)
+const mdId = ref<string | undefined>(undefined)
+const masterData = ref<MasterData | undefined>(undefined)
 const entitiesAsReference = ref<object[]>([])
-const masterdataAsReference = ref<object[]>([])
 const labelField = ref<string | undefined>(undefined)
 const submitButtonLabel = ref('Add')
 const description = ref('')
@@ -244,7 +232,6 @@ const info = ref('')
 const jsonPath = ref<string | undefined>('$')
 const source = ref<string>('manual')
 const reference = ref<any>()
-const masterdataRef = ref<any>()
 
 const sourceOptions = ref<object[]>([])
 
@@ -256,9 +243,9 @@ onMounted(() => {
 
 watch(() => labelField.value, async (currentValue, oldValue) => {
   console.log("changed labelField", currentValue, oldValue)
-  if (entity.value) {
-    entity.value.labelField = currentValue
-    await useEntitiesStore().save(entity.value)
+  if (masterData.value) {
+    masterData.value.labelField = currentValue
+    await useMasterDataStore().save(masterData.value)
   }
 })
 
@@ -277,19 +264,19 @@ watchEffect(() => {
 })
 
 watchEffect(async () => {
-  entityId.value = route.params.entityId.toString() || ''
-  if (entityId.value && useEntitiesStore().updated) {
-    entity.value = await useEntitiesStore().findById(entityId.value)
-    labelField.value = entity.value?.labelField
-    description.value = entity.value?.description || ''
-    jsonPath.value = entity.value?.jsonPath || ''
-    apps.value = entity.value?.apps || []
-    source.value = entity.value?.source || 'manual'
+  mdId.value = route.params.mdId.toString() || ''
+  if (mdId.value && useMasterDataStore().updated) {
+    masterData.value = await useMasterDataStore().findById(mdId.value)
+    labelField.value = masterData.value?.labelField
+    description.value = masterData.value?.description || ''
+    jsonPath.value = masterData.value?.jsonPath || ''
+    apps.value = masterData.value?.apps || []
+    source.value = masterData.value?.source || 'manual'
   }
 })
 
 watchEffect(() => {
-  entitiesAsReference.value = _.map(useEntitiesStore().entities, (e: Entity) => {
+  entitiesAsReference.value = _.map(useMasterDataStore().masterData, (e: MasterData) => {
     return {
       value: e.id,
       label: e.name
@@ -298,56 +285,47 @@ watchEffect(() => {
 })
 
 watchEffect(() => {
-  masterdataAsReference.value = _.map(useMasterDataStore().masterData, (e: MasterData) => {
-    return {
-      value: e.id,
-      label: e.name
-    }
-  })
-})
-
-watchEffect(() => {
-  console.log("==>", name.value, label.value)
+  console.log ("==>", name.value, label.value)
   if (name.value && (label.value === '' || name.value.toLowerCase().startsWith(label.value.toLowerCase()))) {
-    label.value = name.value.substring(0, 1).toUpperCase() + name.value.substring(1)
+    label.value = name.value.substring(0,1).toUpperCase() + name.value.substring(1)
   }
 })
 
 const addField = () => {
-  console.log("adding field", entity.value)
-  console.log("adding ref", reference.value)
-  if (entity.value) {
-    const newField = new Field(uid(), name.value, typeModel.value, label.value, "", info.value, reference.value, masterdataRef.value)
+  console.log("adding field", masterData.value)
+  console.log("adding ref",reference.value)
+  if (masterData.value) {
+    const newField = new Field(uid(), name.value, typeModel.value, label.value, "", info.value, reference.value)
     console.log("adding", newField)
-    entity.value.fields.push(newField)
-    sendMsg('entity-changed', entity.value)
+    masterData.value.fields.push(newField)
+    sendMsg('masterdata-changed', masterData.value)
   }
 }
 
 const deleteField = async (f: Field) => {
   console.log("deleting", f)
-  if (entity.value) {
-    entity.value.fields = _.filter(entity.value.fields, (field: Field) => field.id !== f.id)
-    await useEntitiesStore().save(entity.value)
+  if (masterData.value) {
+    masterData.value.fields = _.filter(masterData.value.fields, (field: Field) => field.id !== f.id)
+    await useMasterDataStore().save(masterData.value)
   }
 }
 
 const saveEntity = async () => {
-  if (entity.value) {
+  if (masterData.value) {
     console.log("apps.value", apps.value)
-    entity.value.description = description.value
-    entity.value.source = "api|" + source.value['value' as keyof object]
-    entity.value.jsonPath = jsonPath.value
-    entity.value.apps = apps.value
-    console.log("saving", entity.value, source.value)
-    await useEntitiesStore().save(entity.value)
+    masterData.value.description = description.value
+    masterData.value.source = "api|" + source.value['value' as keyof object]
+    masterData.value.jsonPath = jsonPath.value
+    masterData.value.apps = apps.value
+    console.log("saving", masterData.value, source.value)
+    await useMasterDataStore().save(masterData.value)
   }
 }
 
-const deleteEntity = () => {
-  if (entity.value) {
-    useEntitiesStore().deleteEntity(entity.value.id)
-    sendMsg('reload-entities')
+const deleteMasterData = () => {
+  if (masterData.value) {
+    useMasterDataStore().deleteMasterData(masterData.value.id)
+    sendMsg('reload-masterdata')
     window.close()
   }
 }

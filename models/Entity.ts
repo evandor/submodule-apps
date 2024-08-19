@@ -9,7 +9,8 @@ export enum FieldType {
   DATE = "DATE",
   FORMULA = "FORMULA",
   REFERENCE = "REFERENCE",
-  SUBSTITUTION = "SUBSTITUTION"
+  SUBSTITUTION = "SUBSTITUTION",
+  MASTERDATA = "MASTERDATA"
 }
 
 export class Field {
@@ -22,6 +23,7 @@ export class Field {
     public value: string | number | undefined = undefined,
     public info: string | undefined = undefined,
     public reference: string | undefined = undefined,
+    public masterdataRef: string | undefined = undefined,
     public substitution: string | undefined = undefined
   ) {
 

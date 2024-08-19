@@ -254,9 +254,9 @@ watchEffect(() => {
 
 watchEffect(() => {
   if (jsonPath.value) {
-    console.log("jsonpath", jsonPath.value)
+    console.log("jsonpath", jsonPath.value, endpoint.value)
     try {
-      if (endpoint.value && endpoint.value.results) {
+      if (endpoint.value && endpoint.value.results && endpoint.value.results[0]) {
         const json = endpoint.value.results[0].data
         console.log("json", endpoint.value.results)
         console.log("json", json)
@@ -404,6 +404,7 @@ const execute = async () => {
   if (api.value && endpoint.value) {
     const res = await useCommandExecutor().executeFromUi(new ExecuteApiCommand(api.value, endpoint.value))
     if (res) {
+      console.log("res", res)
       endpoint.value.results.push(new ApiResponse(uid(), [], [], res.result.data))
       result.value = res.result.data
       sendMsg('api-changed', api.value)

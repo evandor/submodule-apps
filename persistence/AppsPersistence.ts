@@ -1,11 +1,17 @@
 import {Entity} from "src/apps/models/Entity";
 import {Api} from "src/apps/models/Api";
+import {MasterData} from "src/apps/models/MasterData";
 
 interface AppsPersistence {
 
   getServiceName(): string
 
   init(): Promise<any>
+
+  saveMasterData(md: MasterData): void
+  getMasterData(): Promise<MasterData[]>
+  findMasterDataById(id: string): Promise<MasterData>
+  deleteMasterData(mdId: string): Promise<void>;
 
   saveEntity(entity: Entity): void
   getEntities(): Promise<Entity[]>
